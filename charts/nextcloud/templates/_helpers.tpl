@@ -410,7 +410,6 @@ Swift as primary object store env vars
 {{- end }}
 {{- end -}}
 
-
 {{/*
 Create volume mounts for the nextcloud container as well as the cron sidecar container.
 */}}

@@ -1,6 +1,6 @@
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: {{ .Values.deploymentKind }}
 metadata:
   name: {{ template "nextcloud.fullname" . }}
   labels:
@@ -15,6 +15,9 @@ metadata:
 spec:
   {{- if not .Values.hpa.enabled }}
   replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  {{- if eq .Values.deploymentKind "StatefulSet" }}
+  serviceName: {{ template "nextcloud.fullname" . }}
   {{- end }}
   strategy:
     {{- toYaml .Values.nextcloud.strategy | nindent 4 }}

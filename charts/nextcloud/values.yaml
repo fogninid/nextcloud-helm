@@ -29,6 +29,8 @@ deploymentLabels: {}
 # Number of replicas to be deployed
 replicaCount: 1
 
+deploymentKind: Deployment
+
 httpRoute:
   # -- Enable an HTTPRoute resource for nextcloud .
   enabled: false

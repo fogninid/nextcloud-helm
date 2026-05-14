@@ -286,6 +286,12 @@ Redis env vars
       name: {{ .Values.nextcloud.existingSecret.secretName | default (include "nextcloud.fullname" .) }}
       key: {{ .Values.nextcloud.existingSecret.smtpPasswordKey }}
 {{- end }}
+{{- if eq .Values.deploymentKind "StatefulSet" }}
+- name: NC_serverid
+  valueFrom:
+    fieldRef:
+      fieldPath: metadata.labels['apps.kubernetes.io/pod-index']
+{{- end }}
 {{/*
 S3 as primary object store env vars
 */}}

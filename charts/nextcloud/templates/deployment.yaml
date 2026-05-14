@@ -1,6 +1,6 @@
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: {{ .Values.deploymentKind }}
 metadata:
   name: {{ template "nextcloud.fullname" . }}
   labels:
@@ -16,8 +16,18 @@ spec:
   {{- if not .Values.hpa.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
+  {{- if eq .Values.deploymentKind "StatefulSet" }}
+  serviceName: {{ template "nextcloud.fullname" . }}
+  podManagementPolicy: {{ .Values.podManagementPolicy }}
+  {{- with .Values.minReadySeconds }}
+  minReadySeconds: {{ . }}
+  {{- end }}
+  {{- else if eq .Values.deploymentKind "Deployment" }}
   strategy:
     {{- toYaml .Values.nextcloud.strategy | nindent 4 }}
+  {{- else }}
+  {{- fail "Invalid deploymentKind" }}
+  {{- end }}
   selector:
     matchLabels:
       {{- include "nextcloud.selectorLabels"  ( dict "component" "app"  "rootContext" $ ) | nindent 6 }}

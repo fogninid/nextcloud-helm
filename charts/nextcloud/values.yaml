@@ -35,6 +35,9 @@ deploymentKind: Deployment
 # for deploymentKind "StatefulSet"
 podManagementPolicy: OrderedReady
 
+# for deploymentKind "StatefulSet"
+minReadySeconds: 30
+
 httpRoute:
   # -- Enable an HTTPRoute resource for nextcloud .
   enabled: false
@@ -1095,6 +1098,9 @@ rbac:
 
 ## @param securityContext for nextcloud pod @deprecated Use `nextcloud.podSecurityContext` instead
 securityContext: {}
+
+## @param hostUsers to configure user namespace for nextcloud pod
+# hostUsers: false
 
 # -- Allows users to inject additional Kubernetes manifests (YAML) to be rendered with the release.
 # Could either be a list or a map

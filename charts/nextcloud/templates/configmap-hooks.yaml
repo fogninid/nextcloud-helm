@@ -12,4 +12,7 @@ data:
   {{ $hook }}.sh: {{ $shell | quote }}
   {{- end }}
   {{- end }}
+  {{- if $.Values.nextcloud.imageCopyFix }}
+  imageCopyFix.sh: cp /var/www/html/version.php /nextcloud/persisted/
+  {{- end }}
 {{- end }}

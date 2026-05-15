@@ -147,6 +147,8 @@ nextcloud:
     smtpPasswordKey: smtp-password
     smtpHostKey: smtp-host
   update: 0
+  # mount image volume for nextcloud code instead of relying on rsync deployment of image
+  imageCopyFix: false
   # If web server is not binding default port, you can define it
   containerPort: 80
   datadir: /var/www/html/data

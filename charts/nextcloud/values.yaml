@@ -36,7 +36,7 @@ deploymentKind: Deployment
 podManagementPolicy: OrderedReady
 
 # for deploymentKind "StatefulSet"
-minReadySeconds: 30
+minReadySeconds: 10
 
 httpRoute:
   # -- Enable an HTTPRoute resource for nextcloud .
@@ -147,6 +147,8 @@ nextcloud:
     smtpPasswordKey: smtp-password
     smtpHostKey: smtp-host
   update: 0
+  # install nextcloud to pod-local volume instead of using the persistence pvc
+  installLocalCopy: false
   # If web server is not binding default port, you can define it
   containerPort: 80
   datadir: /var/www/html/data

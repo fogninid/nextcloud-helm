@@ -93,6 +93,16 @@ spec:
               readOnly: true
             {{- end }}
             {{- end }}
+            {{- if .Values.nextcloud.installLocalCopy }}
+            - name: nextcloud-hooks
+              mountPath: /docker-entrypoint-hooks.d/post-installation/installLocalCopy.sh
+              subPath: installLocalCopy.sh
+              readOnly: true
+            - name: nextcloud-hooks
+              mountPath: /docker-entrypoint-hooks.d/post-upgrade/installLocalCopy.sh
+              subPath: installLocalCopy.sh
+              readOnly: true
+            {{- end }}
           {{- if not .Values.nginx.enabled }}
           ports:
             - name: http
@@ -218,9 +228,17 @@ spec:
             - name: nextcloud-main
               mountPath: /var/www/
               subPath: {{ ternary "root" (printf "%s/root" .Values.nextcloud.persistence.subPath) (empty .Values.nextcloud.persistence.subPath) }}
+            {{- if .Values.nextcloud.installLocalCopy }}
+            - name: nextcloud-local
+              mountPath: /var/www/html
+            - name: nextcloud-main
+              mountPath: /installCopy
+              subPath: {{ ternary "html" (printf "%s/html" .Values.nextcloud.persistence.subPath) (empty .Values.nextcloud.persistence.subPath) }}
+            {{- else }}
             - name: nextcloud-main
               mountPath: /var/www/html
               subPath: {{ ternary "html" (printf "%s/html" .Values.nextcloud.persistence.subPath) (empty .Values.nextcloud.persistence.subPath) }}
+            {{- end }}
             {{- if and .Values.persistence.nextcloudData.enabled .Values.persistence.enabled }}
             - name: nextcloud-data
               mountPath: {{ .Values.nextcloud.datadir }}
@@ -297,6 +315,27 @@ spec:
         {{- with .Values.nextcloud.extraInitContainers }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
+        {{- if .Values.nextcloud.installLocalCopy }}
+        - name: nextcloud-copyfix
+          image: {{ include "nextcloud.image" $ }}
+          imagePullPolicy: {{ $.Values.image.pullPolicy }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+                cp /installCopy/version.php /var/www/html/
+                rsync -rlD --exclude-from=/upgrade.exclude /usr/src/nextcloud/ /var/www/html/
+          {{- with .Values.nextcloud.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: nextcloud-local
+              mountPath: /var/www/html
+            - name: nextcloud-main
+              mountPath: /installCopy
+              subPath: {{ ternary "html" (printf "%s/html" .Values.nextcloud.persistence.subPath) (empty .Values.nextcloud.persistence.subPath) }}
+        {{- end }}
         {{- if .Values.mariadb.enabled }}
         - name: mariadb-isalive
           image: {{ coalesce .Values.global.image.registry .Values.mariadb.image.registry "docker.io" }}/{{ .Values.mariadb.image.repository }}:{{ .Values.mariadb.image.tag }}
@@ -370,6 +409,10 @@ spec:
           {{- else }}
           emptyDir: {}
           {{- end }}
+        {{- if .Values.nextcloud.installLocalCopy }}
+        - name: nextcloud-local
+          emptyDir: {}
+        {{- end }}
         {{- if and .Values.persistence.nextcloudData.enabled .Values.persistence.enabled }}
         - name: nextcloud-data
           {{- with .Values.persistence.nextcloudData.hostPath }}

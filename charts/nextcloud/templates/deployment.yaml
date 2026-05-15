@@ -415,6 +415,9 @@ spec:
         fsGroup: 33
         {{- end }}
         {{- end }}{{/* end-with podSecurityContext */}}
+      {{- if hasKey .Values "hostUsers" }}
+      hostUsers: {{ .Values.hostUsers }}
+      {{- end }}
       {{- if .Values.rbac.enabled }}
       serviceAccountName: {{ .Values.rbac.serviceaccount.name }}
       {{- end }}

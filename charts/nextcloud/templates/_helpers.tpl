@@ -377,9 +377,17 @@ Create volume mounts for the nextcloud container as well as the cron sidecar con
 - name: nextcloud-main
   mountPath: /var/www/
   subPath: {{ ternary "root" (printf "%s/root" .Values.nextcloud.persistence.subPath) (empty .Values.nextcloud.persistence.subPath) }}
+{{- if .Values.nextcloud.installLocalCopy }}
+- name: nextcloud-local
+  mountPath: /var/www/html
+- name: nextcloud-main
+  mountPath: /installCopy
+  subPath: {{ ternary "html" (printf "%s/html" .Values.nextcloud.persistence.subPath) (empty .Values.nextcloud.persistence.subPath) }}
+{{- else }}
 - name: nextcloud-main
   mountPath: /var/www/html
   subPath: {{ ternary "html" (printf "%s/html" .Values.nextcloud.persistence.subPath) (empty .Values.nextcloud.persistence.subPath) }}
+{{- end }}
 {{- if and .Values.persistence.nextcloudData.enabled .Values.persistence.enabled }}
 - name: nextcloud-data
   mountPath: {{ .Values.nextcloud.datadir }}
@@ -458,4 +466,29 @@ app.kubernetes.io/managed-by: {{ .rootContext.Release.Service }}
 {{- with .rootContext.Chart.AppVersion }}
 app.kubernetes.io/version: {{ quote . }}
 {{- end }}
+{{- end -}}
+
+{{- define "nextcloud.installCopyContainer"}}
+image: {{ include "nextcloud.image" $ }}
+imagePullPolicy: {{ $.Values.image.pullPolicy }}
+command:
+  - /bin/sh
+  - -c
+  - |
+    chown --reference=/var/www/html/config /installCopy
+    cp /installCopy/version.php /var/www/html/
+    rsync -rlD --exclude-from=/upgrade.exclude /usr/src/nextcloud/ /var/www/html/
+{{- with $.Values.nextcloud.securityContext }}
+securityContext:
+  {{- toYaml . | nindent 2 }}
+{{- end }}
+volumeMounts:
+  - name: nextcloud-local
+    mountPath: /var/www/html
+  - name: nextcloud-main
+    mountPath: /installCopy
+    subPath: {{ ternary "html" (printf "%s/html" $.Values.nextcloud.persistence.subPath) (empty $.Values.nextcloud.persistence.subPath) }}
+  - name: nextcloud-main
+    mountPath: /var/www/html/config
+    subPath: {{ ternary "config" (printf "%s/config" .Values.nextcloud.persistence.subPath) (empty .Values.nextcloud.persistence.subPath) }}
 {{- end -}}

@@ -65,6 +65,10 @@ Create image name that is used in the deployment
 Create environment variables used to configure the nextcloud container as well as the cron sidecar container.
 */}}
 {{- define "nextcloud.env" -}}
+- name: "POD_IP"
+  valueFrom:
+    fieldRef:
+      fieldPath: status.podIP
 {{- if .Values.phpClientHttpsFix.enabled }}
 - name: OVERWRITEPROTOCOL
   value: {{ .Values.phpClientHttpsFix.protocol | quote }}
@@ -181,7 +185,7 @@ Create environment variables used to configure the nextcloud container as well a
   {{- if .Values.nextcloud.trustedDomains }}
   value: {{ join " " .Values.nextcloud.trustedDomains | quote }}
   {{- else }}
-  value: {{ .Values.nextcloud.host }}{{ if .Values.metrics.enabled }} {{ template "nextcloud.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local{{ end }}
+  value: {{ .Values.nextcloud.host }}{{ if .Values.metrics.enabled }} {{ template "nextcloud.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local{{ end }} $(POD_IP)
   {{- end }}
 {{- with .Values.nextcloud.openmetrics.allowedClients }}
 - name: OPENMETRICS_ALLOWED_CLIENTS

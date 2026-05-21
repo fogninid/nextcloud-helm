@@ -313,6 +313,12 @@ nextcloud:
   #      ),
   #    );
 
+  # Extra config files created in /var/www/html/config/ and rendered as go templates
+  # ref: https://docs.nextcloud.com/server/latest/admin_manual/configuration_server/config_sample_php_parameters.html#multiple-config-php-file
+  configsTpl:
+    trusted_domains.config.php: |-
+      {{ tpl ($.Files.Get "files/trusted_domains.config.php.tpl") . }}
+
   # Hooks for auto configuration
   # Here you could write small scripts which are placed in `/docker-entrypoint-hooks.d/<hook-name>/helm.sh`
   # ref: https://github.com/nextcloud/docker?tab=readme-ov-file#auto-configuration-via-hook-folders

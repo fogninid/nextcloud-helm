@@ -104,7 +104,7 @@ spec:
             - name: nextcloud-local
               {{- include "nextcloud.installCopyVolume" . | nindent 14 }}
             {{- end }}
-            {{- if .Values.nextcloud.configs }}
+            {{- if or .Values.nextcloud.configs .Values.nextcloud.configsTpl }}
             - name: nextcloud-config
               configMap:
                 name: {{ template "nextcloud.fullname" . }}-config

@@ -8,7 +8,7 @@ metadata:
 data:
   {{- range $filename, $content := .Values.nextcloud.configs }}
   {{ $filename }}: |-
-    {{- $content | nindent 4 }}
+    {{- tpl $content $ | nindent 4 }}
   {{- end }}
   {{- range $filename, $enabled := .Values.nextcloud.defaultConfigs }}
   {{- if $enabled }}

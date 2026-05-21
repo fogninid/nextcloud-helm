@@ -65,6 +65,10 @@ Create image name that is used in the deployment
 Create environment variables used to configure the nextcloud container as well as the cron sidecar container.
 */}}
 {{- define "nextcloud.env" -}}
+- name: "POD_IP"
+  valueFrom:
+    fieldRef:
+      fieldPath: status.podIP
 {{- if .Values.phpClientHttpsFix.enabled }}
 - name: OVERWRITEPROTOCOL
   value: {{ .Values.phpClientHttpsFix.protocol | quote }}

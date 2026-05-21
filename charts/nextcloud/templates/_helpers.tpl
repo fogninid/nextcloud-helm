@@ -60,11 +60,27 @@ Create image name that is used in the deployment
 {{- end }}
 {{- end -}}
 
+{{- define "nextcloud.trustedDomainsJson" -}}
+{{- $_domains := list }}
+{{- if .Values.nextcloud.trustedDomains }}
+{{- $_domains = concat $_domains .Values.nextcloud.trustedDomains }}
+{{- else }}
+{{- $_domains = append $_domains .Values.nextcloud.host }}
+{{- end }}
+{{- if .Values.metrics.enabled }}
+{{- $_domains = append $_domains (printf "%s.%s.%s" (include "nextcloud.fullname" .) .Release.Namespace "svc.cluster.local") }}
+{{- end }}
+{{- toJson $_domains }}
+{{- end -}}
 
 {{/*
 Create environment variables used to configure the nextcloud container as well as the cron sidecar container.
 */}}
 {{- define "nextcloud.env" -}}
+- name: "POD_IP"
+  valueFrom:
+    fieldRef:
+      fieldPath: status.podIP
 {{- if .Values.phpClientHttpsFix.enabled }}
 - name: OVERWRITEPROTOCOL
   value: {{ .Values.phpClientHttpsFix.protocol | quote }}
@@ -178,11 +194,8 @@ Create environment variables used to configure the nextcloud container as well a
       name: {{ .Values.nextcloud.existingSecret.secretName | default (include "nextcloud.fullname" .) }}
       key: {{ .Values.nextcloud.existingSecret.passwordKey }}
 - name: NEXTCLOUD_TRUSTED_DOMAINS
-  {{- if .Values.nextcloud.trustedDomains }}
-  value: {{ join " " .Values.nextcloud.trustedDomains | quote }}
-  {{- else }}
-  value: {{ .Values.nextcloud.host }}{{ if .Values.metrics.enabled }} {{ template "nextcloud.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local{{ end }}
-  {{- end }}
+  {{- $_domains := (include "nextcloud.trustedDomainsJson" . ) | fromJsonArray }}
+  value: {{ join " " $_domains | quote }}
 {{- with .Values.nextcloud.openmetrics.allowedClients }}
 - name: OPENMETRICS_ALLOWED_CLIENTS
   value: {{ join "," . | quote }}
@@ -414,7 +427,12 @@ Create volume mounts for the nextcloud container as well as the cron sidecar con
   mountPath: /var/www/html/config/{{ $key }}
   subPath: {{ $key }}
 {{- end }}
-{{- if .Values.nextcloud.configs }}
+{{- range $key, $value := .Values.nextcloud.configsTpl }}
+- name: nextcloud-config
+  mountPath: /var/www/html/config/{{ $key }}
+  subPath: {{ $key }}
+{{- end }}
+{{- if or .Values.nextcloud.configs .Values.nextcloud.configsTpl }}
 {{- range $key, $value := .Values.nextcloud.defaultConfigs }}
 {{- if $value }}
 - name: nextcloud-config

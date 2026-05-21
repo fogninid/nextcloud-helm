@@ -1,4 +1,4 @@
-{{- if .Values.nextcloud.configs -}}
+{{- if or .Values.nextcloud.configs .Values.nextcloud.configsTpl -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -8,7 +8,11 @@ metadata:
 data:
   {{- range $filename, $content := .Values.nextcloud.configs }}
   {{ $filename }}: |-
-    {{- $content | nindent 4 }}
+    {{- $content $ | nindent 4 }}
+  {{- end }}
+  {{- range $filename, $content := .Values.nextcloud.configsTpl }}
+  {{ $filename }}: |-
+    {{- tpl $content $ | nindent 4 }}
   {{- end }}
   {{- range $filename, $enabled := .Values.nextcloud.defaultConfigs }}
   {{- if $enabled }}

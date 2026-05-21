@@ -121,7 +121,7 @@ spec:
             - name: nextcloud-local
               emptyDir: {}
             {{- end }}
-            {{- if .Values.nextcloud.configs }}
+            {{- if or .Values.nextcloud.configs .Values.nextcloud.configsTpl }}
             - name: nextcloud-config
               configMap:
                 name: {{ template "nextcloud.fullname" . }}-config

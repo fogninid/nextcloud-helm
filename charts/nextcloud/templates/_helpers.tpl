@@ -498,7 +498,7 @@ command:
     rsync -rlD --exclude-from=/upgrade.exclude /usr/src/nextcloud/ /var/www/html/
 {{- with $.Values.nextcloud.securityContext }}
 securityContext:
-  {{- toYaml . | nindent 16 }}
+  {{- toYaml . | nindent 2 }}
 {{- end }}
 volumeMounts:
   - name: nextcloud-local
@@ -506,4 +506,7 @@ volumeMounts:
   - name: nextcloud-main
     mountPath: /installCopy
     subPath: {{ ternary "html" (printf "%s/html" $.Values.nextcloud.persistence.subPath) (empty $.Values.nextcloud.persistence.subPath) }}
+  - name: nextcloud-main
+    mountPath: /var/www/html/config
+    subPath: {{ ternary "config" (printf "%s/config" .Values.nextcloud.persistence.subPath) (empty .Values.nextcloud.persistence.subPath) }}
 {{- end -}}

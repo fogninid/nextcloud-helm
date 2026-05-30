@@ -312,31 +312,14 @@ spec:
       {{- with $.Values.nextcloud.priorityClassName | default $.Values.priorityClassName }}
       priorityClassName: {{ . }}
       {{- end }}
-      {{- if or .Values.nextcloud.extraInitContainers .Values.mariadb.enabled .Values.postgresql.enabled }}
+      {{- if or .Values.nextcloud.extraInitContainers .Values.mariadb.enabled .Values.postgresql.enabled .Values.nextcloud.installLocalCopy }}
       initContainers:
         {{- with .Values.nextcloud.extraInitContainers }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
         {{- if .Values.nextcloud.installLocalCopy }}
-        - name: nextcloud-copyfix
-          image: {{ include "nextcloud.image" $ }}
-          imagePullPolicy: {{ $.Values.image.pullPolicy }}
-          command:
-            - /bin/sh
-            - -c
-            - |
-                cp /installCopy/version.php /var/www/html/
-                rsync -rlD --exclude-from=/upgrade.exclude /usr/src/nextcloud/ /var/www/html/
-          {{- with .Values.nextcloud.securityContext }}
-          securityContext:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-          volumeMounts:
-            - name: nextcloud-local
-              mountPath: /var/www/html
-            - name: nextcloud-main
-              mountPath: /installCopy
-              subPath: {{ ternary "html" (printf "%s/html" .Values.nextcloud.persistence.subPath) (empty .Values.nextcloud.persistence.subPath) }}
+        - name: nextcloud-install-local-copy
+          {{- include "nextcloud.installCopyContainer" . | indent 10 }}
         {{- end }}
         {{- if .Values.mariadb.enabled }}
         - name: mariadb-isalive

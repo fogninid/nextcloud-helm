@@ -64,25 +64,8 @@ spec:
                 {{- include "nextcloud.volumeMounts" $ | trim | nindent 16 }}
           {{- if $.Values.nextcloud.installLocalCopy }}
           initContainers:
-            - name: nextcloud-copyfix
-              image: {{ include "nextcloud.image" $ }}
-              imagePullPolicy: {{ $.Values.image.pullPolicy }}
-              command:
-                - /bin/sh
-                - -c
-                - |
-                  cp /installCopy/version.php /var/www/html/
-                  rsync -rlD --exclude-from=/upgrade.exclude /usr/src/nextcloud/ /var/www/html/
-              {{- with $.Values.nextcloud.securityContext }}
-              securityContext:
-                {{- toYaml . | nindent 16 }}
-              {{- end }}
-              volumeMounts:
-                - name: nextcloud-local
-                  mountPath: /var/www/html
-                - name: nextcloud-main
-                  mountPath: /installCopy
-                  subPath: {{ ternary "html" (printf "%s/html" $.Values.nextcloud.persistence.subPath) (empty $.Values.nextcloud.persistence.subPath) }}
+            - name: nextcloud-install-local-copy
+              {{- include "nextcloud.installCopyContainer" $ | indent 14 }}
           {{- end }}
           {{- with $.Values.nodeSelector }}
           nodeSelector:

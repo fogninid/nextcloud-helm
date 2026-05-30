@@ -485,3 +485,25 @@ app.kubernetes.io/managed-by: {{ .rootContext.Release.Service }}
 app.kubernetes.io/version: {{ quote . }}
 {{- end }}
 {{- end -}}
+
+{{- define "nextcloud.installCopyContainer"}}
+image: {{ include "nextcloud.image" $ }}
+imagePullPolicy: {{ $.Values.image.pullPolicy }}
+command:
+  - /bin/sh
+  - -c
+  - |
+    chown --reference=/var/www/html/config /installCopy
+    cp /installCopy/version.php /var/www/html/
+    rsync -rlD --exclude-from=/upgrade.exclude /usr/src/nextcloud/ /var/www/html/
+{{- with $.Values.nextcloud.securityContext }}
+securityContext:
+  {{- toYaml . | nindent 16 }}
+{{- end }}
+volumeMounts:
+  - name: nextcloud-local
+    mountPath: /var/www/html
+  - name: nextcloud-main
+    mountPath: /installCopy
+    subPath: {{ ternary "html" (printf "%s/html" $.Values.nextcloud.persistence.subPath) (empty $.Values.nextcloud.persistence.subPath) }}
+{{- end -}}

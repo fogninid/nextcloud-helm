@@ -390,7 +390,7 @@ Create volume mounts for the nextcloud container as well as the cron sidecar con
 - name: nextcloud-main
   mountPath: /var/www/
   subPath: {{ ternary "root" (printf "%s/root" .Values.nextcloud.persistence.subPath) (empty .Values.nextcloud.persistence.subPath) }}
-{{- if .Values.nextcloud.installLocalCopy }}
+{{- if .Values.nextcloud.installLocalCopy.enabled }}
 - name: nextcloud-local
   mountPath: /var/www/html
 - name: nextcloud-main
@@ -486,7 +486,15 @@ app.kubernetes.io/version: {{ quote . }}
 {{- end }}
 {{- end -}}
 
-{{- define "nextcloud.installCopyContainer"}}
+{{- define "nextcloud.installCopyVolume" -}}
+{{- with .Values.nextcloud.installLocalCopy.volume -}}
+{{- toYaml . }}
+{{- else -}}
+emptyDir: {}
+{{- end -}}
+{{- end -}}
+
+{{- define "nextcloud.installCopyContainer" }}
 image: {{ include "nextcloud.image" $ }}
 imagePullPolicy: {{ $.Values.image.pullPolicy }}
 command:

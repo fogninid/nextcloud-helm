@@ -62,7 +62,7 @@ spec:
               {{- end }}
               volumeMounts:
                 {{- include "nextcloud.volumeMounts" $ | trim | nindent 16 }}
-          {{- if $.Values.nextcloud.installLocalCopy }}
+          {{- if $.Values.nextcloud.installLocalCopy.enabled }}
           initContainers:
             - name: nextcloud-install-local-copy
               {{- include "nextcloud.installCopyContainer" $ | indent 14 }}
@@ -100,9 +100,9 @@ spec:
               persistentVolumeClaim:
                 claimName: {{ if .Values.persistence.nextcloudData.existingClaim }}{{ .Values.persistence.nextcloudData.existingClaim }}{{- else }}{{ template "nextcloud.fullname" . }}-nextcloud-data{{- end }}
             {{- end }}
-            {{- if .Values.nextcloud.installLocalCopy }}
+            {{- if .Values.nextcloud.installLocalCopy.enabled }}
             - name: nextcloud-local
-              emptyDir: {}
+              {{- include "nextcloud.installCopyVolume" . | nindent 14 }}
             {{- end }}
             {{- if or .Values.nextcloud.configs .Values.nextcloud.configsTpl }}
             - name: nextcloud-config

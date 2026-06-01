@@ -12,7 +12,7 @@ data:
   {{ $hook }}.sh: {{ $shell | quote }}
   {{- end }}
   {{- end }}
-  {{- if $.Values.nextcloud.installLocalCopy }}
+  {{- if $.Values.nextcloud.installLocalCopy.enabled }}
   installLocalCopy.sh: cp /var/www/html/version.php /installCopy/
   {{- end }}
 {{- end }}

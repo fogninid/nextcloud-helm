@@ -67,7 +67,7 @@ Create image name that is used in the deployment
 {{- else }}
 {{- $_domains = append $_domains .Values.nextcloud.host }}
 {{- end }}
-{{- if .Values.metrics.enabled }}
+{{- if or .Values.metrics.enabled .Values.notifyPush.enabled }}
 {{- $_domains = append $_domains (printf "%s.%s.%s" (include "nextcloud.fullname" .) .Release.Namespace "svc.cluster.local") }}
 {{- end }}
 {{- toJson $_domains }}

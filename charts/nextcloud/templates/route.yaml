@@ -69,4 +69,26 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
     {{- end }}
+    {{- with .Values.notifyPush.httpRoute }}
+    {{- if .enabled }}
+    - backendRefs:
+        - group: ""
+          kind: Service
+          name: {{ $fullName }}-notify-push
+          port: 80
+          weight: 1
+      {{- with .matches }}
+      matches:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .filters }}
+      filters:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .timeouts }}
+      timeouts:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- end }}
+    {{- end }}
 {{- end }}

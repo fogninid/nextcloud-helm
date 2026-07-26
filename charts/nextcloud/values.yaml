@@ -993,6 +993,15 @@ notifyPush:
     # @section -- Notify Push (Clientpush)
     pathType: Prefix
 
+  httpRoute:
+    enabled: true
+    matches:
+      - path:
+          type: PathPrefix
+          value: /push
+    filters: []
+    timeouts: {}
+
 imaginary:
   # -- Start Imgaginary
   enabled: false
